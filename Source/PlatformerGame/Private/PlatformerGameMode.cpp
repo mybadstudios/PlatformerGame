@@ -8,34 +8,16 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/GameInstance.h"
 
-APlatformerGameMode::APlatformerGameMode(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+APlatformerGameMode::APlatformerGameMode(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	PlayerControllerClass = APlatformerPlayerController::StaticClass();
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnClass(TEXT("/Game/Pawn/PlayerPawn"));
-	DefaultPawnClass = PlayerPawnClass.Class;
-
-	GameState = EGameState::Intro;
-	bRoundWasWon = false;
-	RoundDuration = 0.0f;
-	bIsGamePaused = false;
-	if ((GEngine != NULL) && (GEngine->GameViewport != NULL))
-	{
-		GEngine->GameViewport->SetSuppressTransitionMessage(true);
-	}
 }
 
-void APlatformerGameMode::PrepareRound(bool bRestarting)
+void APlatformerGameMode::PrepareRound()
 {
-	if (bRestarting)
-	{
-		OnRoundFinished.Broadcast();
-	}	
-
-	GameState = bRestarting ? EGameState::Restarting : EGameState::Waiting;
+	GameState = EGameState::Waiting;
 	bRoundWasWon = false;
 	RoundDuration = 0.0f;
-	
+
 	APlatformerPlayerController* PC = Cast<APlatformerPlayerController>(GEngine->GetFirstLocalPlayerController(GetWorld()));
 	APlatformerCharacter* Pawn = PC ? Cast<APlatformerCharacter>(PC->GetPawn()) : NULL;
 	if (Pawn)
@@ -48,19 +30,6 @@ void APlatformerGameMode::PrepareRound(bool bRestarting)
 			Pawn->SetActorHiddenInGame(false);
 		}
 	}
-}
-
-void APlatformerGameMode::SetCanBeRestarted(bool bAllowRestart)
-{
-	if (GameState == EGameState::Finished)
-	{
-		bCanBeRestarted = bAllowRestart;
-	}
-}
-
-bool APlatformerGameMode::CanBeRestarted() const
-{
-	return (GameState == EGameState::Finished && bCanBeRestarted);
 }
 
 void APlatformerGameMode::InitializeHUD()
@@ -127,18 +96,6 @@ float APlatformerGameMode::GetRoundDuration()
 	return RoundDuration;
 }
 
-void APlatformerGameMode::SetGamePaused(bool bIsPaused)
-{
-	APlayerController* PC = GEngine->GetFirstLocalPlayerController(GetWorld());
-	PC->SetPause(bIsPaused);
-	bIsGamePaused = bIsPaused;
-}
-
-bool APlatformerGameMode::IsGamePaused() const
-{
-	return bIsGamePaused;
-}
-
 bool APlatformerGameMode::IsRoundInProgress() const
 {
 	return GameState == EGameState::Playing;
@@ -152,4 +109,29 @@ bool APlatformerGameMode::IsRoundWon() const
 EGameState::Type APlatformerGameMode::GetGameState() const
 {
 	return GameState;
+}
+
+void APlatformerGameMode::AddPointsToScore(int32 Points) 
+{ 
+	PointsScore += Points; 
+}
+
+int32 APlatformerGameMode::GetFinalScore() const
+{ 
+	return FMath::Abs(PointsScore + GetTimeBonus()); 
+}
+
+int32 APlatformerGameMode::GetTimeBonus() const 
+{
+	float val = (RoundTimeLimit - RoundDuration) * TimeBonusAmount; return FMath::Max(val, 0); 
+}
+
+int32 APlatformerGameMode::GetBestScore() const 
+{
+	return UGameplayStatics::GetGameInstance(this)->GetSubsystem<UWpServerGlobals>()->BestScore;
+}
+
+float APlatformerGameMode::GetTimeRemaining() const 
+{ 
+	return RoundTimeLimit - RoundDuration; 
 }

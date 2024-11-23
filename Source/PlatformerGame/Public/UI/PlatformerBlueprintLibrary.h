@@ -17,10 +17,6 @@ class UPlatformerBlueprintLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, Category=Game, meta=(WorldContext="WorldContextObject"))
 	static bool FinishRace(class UObject* WorldContextObject);
 
-	/** allow player to restart round */
-	UFUNCTION(BlueprintCallable, Category=Game, meta=(WorldContext="WorldContextObject"))
-	static void AllowToRestartRace(class UObject* WorldContextObject);
-
 	/** allows changing round duration, while round is still in progress - used to give players time bonuses */
 	UFUNCTION(BlueprintCallable, Category=Game, meta=(WorldContext="WorldContextObject"))
 	static void DecreaseRoundDuration(class UObject* WorldContextObject, float DeltaTime);

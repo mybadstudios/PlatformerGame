@@ -18,7 +18,6 @@ namespace EGameState
 		Waiting,
 		Playing,
 		Finished,
-		Restarting,
 	};
 }
 
@@ -28,9 +27,8 @@ class APlatformerGameMode : public AGameModeBase
 	GENERATED_UCLASS_BODY()
 
 public:
-
 	/** prepare game state and show HUD message */
-	void PrepareRound(bool bRestarting = false);
+	void PrepareRound();
 
 	/** used to start this round */
 	void StartRound();
@@ -38,27 +36,8 @@ public:
 	/** finish current round */
 	void FinishRound();
 
-	/** is game paused? */
-	bool IsGamePaused() const;
-
-	/** pauses/unpauses the game */
-	void SetGamePaused(bool bIsPaused);
-
-	/** sets if round can be restarted */
-	void SetCanBeRestarted(bool bAllowRestart);
-
-	/** returns if round can be restarted */
-	bool CanBeRestarted() const;
-
 	void InitializeHUD();
 
-	UFUNCTION(BlueprintCallable, Category = "Game")
-	void UpdateHUD();
-
-	/** 
-	 * returns time that passed since round has started (in seconds)
-	 * if the round has already ended returns round duration
-	 */
 	float GetRoundDuration();
 
 	/** increases/decreases round duration by DeltaTime */
@@ -73,52 +52,43 @@ public:
 	/** get current state of game */
 	EGameState::Type GetGameState() const;
 
-	UFUNCTION(BlueprintCallable, Category = "Game")
-	void AddPointsToScore(int32 Points) { PointsScore += Points; }
-
+public:
 	/** delegate to broadcast about finished round */
 	UPROPERTY(BlueprintAssignable)
 	FRoundFinishedDelegate OnRoundFinished;
 
-	UFUNCTION(BlueprintCallable, Category = "Game")
-	int32 GetFinalScore() const { return FMath::Abs(PointsScore + GetTimeBonus()); }
-
-	UFUNCTION(BlueprintCallable, Category = "Game")
-	int32 GetTimeBonus() const { float val = (RoundTimeLimit - RoundDuration) * TimeBonusAmount; return FMath::Max(val,0); }
-
-	UFUNCTION(BlueprintCallable, Category = "Game")
-	int32 GetBestScore() const { 
-		return UGameplayStatics::GetGameInstance(this)->GetSubsystem<UWpServerGlobals>()->BestScore;
-	}
-
-	UFUNCTION(BlueprintCallable, Category = "Game")
-	float GetTimeRemaining() const { return RoundTimeLimit - RoundDuration; }
 
 public:
-	UMainHUDWidget* MainHUD;
+	UFUNCTION(BlueprintCallable, Category = "Game")
+	void UpdateHUD();
+
+	UFUNCTION(BlueprintCallable, Category = "Game")
+	void AddPointsToScore(int32 Points);
+
+	UFUNCTION(BlueprintCallable, Category = "Game")
+	int32 GetFinalScore() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Game")
+	int32 GetTimeBonus() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Game")
+	int32 GetBestScore() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Game")
+	float GetTimeRemaining() const;
+
+public:
+	UMainHUDWidget* MainHUD = nullptr;
 
 private:
-	float RoundTimeLimit = 60;
 	int32 TimeBonusAmount = 1000;
-	int32 PointsScore=0;
-	float RoundDuration;
+	int32 PointsScore = 0;
 
-	/** Handle for efficient management of StartRound timer */
-	FTimerHandle TimerHandle_StartRound;
+	float RoundTimeLimit = 60;
+	float RoundDuration = 0;
 
-	/** the time player started this round */
-	//float RoundStartTime;
+	bool bRoundWasWon = false;
 
-	/** true when round is in progress */
-	EGameState::Type GameState;
-
-	/** true if player won this round, false otherwise */
-	uint32 bRoundWasWon:1;
-
-	/** true if game is paused */
-	uint32 bIsGamePaused:1;
-
-	/** true if round can be restarted after finishing */
-	uint32 bCanBeRestarted:1;
+	EGameState::Type GameState = EGameState::Waiting;
 };
 

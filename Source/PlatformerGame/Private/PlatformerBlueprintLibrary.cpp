@@ -40,15 +40,6 @@ bool UPlatformerBlueprintLibrary::FinishRace(class UObject* WorldContextObject)
 	return bHasWon;
 }
 
-void UPlatformerBlueprintLibrary::AllowToRestartRace(class UObject* WorldContextObject)
-{
-	APlatformerGameMode* MyGame = GetGameFromContextObject(WorldContextObject);
-	if (MyGame)
-	{
-		MyGame->SetCanBeRestarted(true);
-	}
-}
-
 void UPlatformerBlueprintLibrary::DecreaseRoundDuration(class UObject* WorldContextObject, float DeltaTime)
 {
 	APlatformerGameMode* MyGame = GetGameFromContextObject(WorldContextObject);
