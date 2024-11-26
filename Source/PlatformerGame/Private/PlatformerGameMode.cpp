@@ -128,7 +128,7 @@ int32 APlatformerGameMode::GetTimeBonus() const
 
 int32 APlatformerGameMode::GetBestScore() const 
 {
-	return UGameplayStatics::GetGameInstance(this)->GetSubsystem<UWpServerGlobals>()->BestScore;
+	return UGameplayStatics::GetGameInstance(this)->GetSubsystem<UWpServerGlobals>()->GetHighScoreFromGameId();
 }
 
 float APlatformerGameMode::GetTimeRemaining() const 
